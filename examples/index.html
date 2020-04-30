@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+	<script src="../dist/index.js"></script>
+	<script>
+		const client = new MesaClient('ws://localhost:4500')
+
+		client.onConnect = () => console.log('Connected')
+		client.onMessage = (op, d, t) => console.log('Recieved', op, d, t)
+		client.onDisconnect = () => console.log('Disconnected')
+
+		client.connect()
+	</script>
+</html>

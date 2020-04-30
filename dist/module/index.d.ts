@@ -1,0 +1,31 @@
+import { Messages, IClientConfig, Message, Opcode, Data, Type } from './defs';
+export default class MesaClient {
+    url: string;
+    authenticated: boolean;
+    messages: Messages;
+    private config;
+    private ws;
+    private queue;
+    private rules;
+    private heartbeatIntervalTime;
+    private authenticationTimeout;
+    private reconnectionIntervalId;
+    private reconnectionIntervalTime;
+    private authenticationResolve;
+    onConnected: () => void;
+    onMessage: (message: Message) => void;
+    onDisconnected: (code: number, reason: string) => void;
+    onError: (error: Error) => void;
+    constructor(url: string, config?: IClientConfig);
+    connect(): Promise<unknown>;
+    send(opcode: Opcode, data: Data, type?: Type): void;
+    private sendRaw;
+    authenticate: (data: object) => Promise<unknown>;
+    disconnect(code?: number, data?: string): void;
+    private parseConfig;
+    private connectAndSupressWarnings;
+    private registerOpen;
+    private registerMessage;
+    private registerClose;
+    private registerError;
+}
