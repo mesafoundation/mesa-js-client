@@ -30,7 +30,7 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 		this.url = url
 		this.config = this.parseConfig(config)
 
-		if (config.autoConnect)
+		if (this.config.autoConnect)
 			this.connect()
 	}
 
