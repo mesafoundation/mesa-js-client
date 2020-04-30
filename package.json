@@ -1,8 +1,9 @@
 {
   "name": "mesa-js-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JavaScript client for Mesa WebSocket server",
   "main": "dist/module/index.js",
+  "browser": "dist/browser/client.js",
   "unpkg": "dist/browser/client.js",
   "repository": "https://github.com/neoncloth/mesa-js-client.git",
   "author": "William Gibson <william@tired.io>",
