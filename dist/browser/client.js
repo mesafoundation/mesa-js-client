@@ -49,7 +49,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         }); }); };
         this.url = url;
         this.config = this.parseConfig(config);
-        if (config.autoConnect)
+        if (this.config.autoConnect)
             this.connect();
     }
     MesaClient.prototype.connect = function () {

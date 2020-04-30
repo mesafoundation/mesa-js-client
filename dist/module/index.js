@@ -11,7 +11,7 @@ class MesaClient {
         });
         this.url = url;
         this.config = this.parseConfig(config);
-        if (config.autoConnect)
+        if (this.config.autoConnect)
             this.connect();
     }
     connect() {
