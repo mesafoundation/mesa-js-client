@@ -4,9 +4,9 @@
 	<script>
 		const client = new MesaClient('ws://localhost:4500')
 
-		client.onConnect = () => console.log('Connected')
+		client.onConnected = () => console.log('Connected')
 		client.onMessage = (op, d, t) => console.log('Recieved', op, d, t)
-		client.onDisconnect = () => console.log('Disconnected')
+		client.onDisconnected = () => console.log('Disconnected')
 
 		client.connect()
 	</script>
