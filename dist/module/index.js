@@ -5,7 +5,10 @@ class MesaClient {
         this.authenticated = false;
         this.queue = [];
         this.rules = [];
+        // Connection Options
+        this.isInitialConnection = true;
         this.isAutomaticReconnection = false;
+        // Disconnection Options
         this.didForcefullyDisconnect = false;
         this.authenticate = (data) => new Promise(async (resolve, reject) => {
             this.authenticationResolve = resolve;
@@ -71,7 +74,12 @@ class MesaClient {
     }
     registerOpen() {
         if (this.onConnected)
-            this.onConnected(this.isAutomaticReconnection);
+            this.onConnected({
+                isInitialConnection: this.isInitialConnection,
+                isAutomaticReconnection: this.isAutomaticReconnection
+            });
+        if (this.isInitialConnection)
+            this.isInitialConnection = false;
         if (this.isAutomaticReconnection)
             this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {

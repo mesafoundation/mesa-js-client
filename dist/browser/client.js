@@ -40,7 +40,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         this.authenticated = false;
         this.queue = [];
         this.rules = [];
+        // Connection Options
+        this.isInitialConnection = true;
         this.isAutomaticReconnection = false;
+        // Disconnection Options
         this.didForcefullyDisconnect = false;
         this.authenticate = function (data) { return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
@@ -113,7 +116,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     };
     MesaClient.prototype.registerOpen = function () {
         if (this.onConnected)
-            this.onConnected(this.isAutomaticReconnection);
+            this.onConnected({
+                isInitialConnection: this.isInitialConnection,
+                isAutomaticReconnection: this.isAutomaticReconnection
+            });
+        if (this.isInitialConnection)
+            this.isInitialConnection = false;
         if (this.isAutomaticReconnection)
             this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {

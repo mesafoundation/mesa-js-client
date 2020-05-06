@@ -47,8 +47,8 @@ client.onConnect = () => {
 	console.log('Connected to Mesa server')
 }
 
-client.onMessage = (opcode, data, type) => {
-	console.log('Recieved', op, d, t)
+client.onMessage = ({ opcode, data, type }) => {
+	console.log('Recieved', opcode, data, type)
 }
 
 client.onDisconnect = (code, reason) => {
@@ -63,7 +63,7 @@ client.connect()
 ```
 
 #### Browser
-```js
+```html
 <script src="js/mesa-js-client.js"></script>
 <script>
 	const client = new MesaClient("ws://localhost:4000")
@@ -72,8 +72,8 @@ client.connect()
 		console.log("Connected to Mesa server")
 	}
 
-	client.onMessage = function(opcode, data, type) {
-		console.log("Recieved", op, d, t)
+	client.onMessage = function({ opcode, data, type }) {
+		console.log("Recieved", opcode, data, type)
 	}
 
 	client.onDisconnected = function(code, reason) {

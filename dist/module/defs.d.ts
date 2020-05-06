@@ -27,6 +27,10 @@ export interface Messages {
     sent: RecievedMessage[];
     recieved: RecievedMessage[];
 }
+export interface ConnectionOptions {
+    isInitialConnection: boolean;
+    isAutomaticReconnection: boolean;
+}
 export interface DisconnectionOptions {
     willAttemptReconnect: boolean;
 }

@@ -1,4 +1,4 @@
-import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, Type, IClientConnectionConfig, DisconnectionOptions } from './defs'
+import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, Type, IClientConnectionConfig, DisconnectionOptions, ConnectionOptions } from './defs'
 
 /*export default*/ class MesaClient {
 	public url: string
@@ -21,12 +21,16 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 
 	private authenticationResolve: (value?: unknown) => void
 
-	onConnected: (isAutomaticReconnection?: boolean) => void
+	onConnected: (options: ConnectionOptions) => void
 	onMessage: (message: Message) => void
 	onDisconnected: (code: number, reason: string, options: DisconnectionOptions) => void
 	onError: (error: Error) => void
 
+	// Connection Options
+	private isInitialConnection: boolean = true
 	private isAutomaticReconnection: boolean = false
+
+	// Disconnection Options
 	private didForcefullyDisconnect: boolean = false
 
 	constructor(url: string, config?: IClientConfig) {
@@ -118,7 +122,13 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 
 	private registerOpen() {
 		if (this.onConnected)
-			this.onConnected(this.isAutomaticReconnection)
+			this.onConnected({
+				isInitialConnection: this.isInitialConnection,
+				isAutomaticReconnection: this.isAutomaticReconnection
+			})
+
+		if(this.isInitialConnection)
+			this.isInitialConnection = false
 
 		if(this.isAutomaticReconnection)
 			this.isAutomaticReconnection = false
