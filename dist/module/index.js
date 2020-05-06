@@ -5,6 +5,8 @@ class MesaClient {
         this.authenticated = false;
         this.queue = [];
         this.rules = [];
+        this.isAutomaticReconnection = false;
+        this.didForcefullyDisconnect = false;
         this.authenticate = (data) => new Promise(async (resolve, reject) => {
             this.authenticationResolve = resolve;
             this.send(2, data);
@@ -19,8 +21,9 @@ class MesaClient {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);
             if (this.ws && this.ws.readyState === this.ws.OPEN)
-                throw new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again');
+                return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'));
             this.ws = new WebSocket(this.url);
+            this.didForcefullyDisconnect = false;
             const resolveConnection = () => {
                 this.ws.removeEventListener('open', resolveConnection);
                 resolve();
@@ -50,6 +53,9 @@ class MesaClient {
     }
     disconnect(code, data) {
         this.ws.close(code, data);
+        this.didForcefullyDisconnect = true;
+        if (this.reconnectionIntervalId)
+            clearInterval(this.reconnectionIntervalId);
     }
     parseConfig(config) {
         if (!config)
@@ -65,7 +71,9 @@ class MesaClient {
     }
     registerOpen() {
         if (this.onConnected)
-            this.onConnected();
+            this.onConnected(this.isAutomaticReconnection);
+        if (this.isAutomaticReconnection)
+            this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {
             this.queue.forEach(this.sendRaw);
             this.queue = [];
@@ -92,7 +100,7 @@ class MesaClient {
                 if (c_authentication_timeout)
                     this.authenticationTimeout = c_authentication_timeout;
                 if (rules.indexOf('enforce_equal_versions') > -1)
-                    this.send(0, { v: '1.2.10"' }, 'CLIENT_VERSION');
+                    this.send(0, { v: '1.2.10' }, 'CLIENT_VERSION');
                 if (rules.indexOf('store_messages') > -1)
                     this.messages = { sent: [], recieved: [] };
                 this.rules = rules;
@@ -104,17 +112,18 @@ class MesaClient {
                 return;
         }
         if (this.onMessage)
-            this.onMessage(json);
+            this.onMessage({ opcode, data, type });
         if (this.rules.indexOf('store_messages') > -1)
             this.messages.recieved.push(json);
     }
     registerClose(code, reason) {
         if (this.onDisconnected)
-            this.onDisconnected(code, reason);
-        if (this.reconnectionIntervalTime) {
+            this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
+        if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);
             this.ws = null;
+            this.isAutomaticReconnection = true;
             this.reconnectionIntervalId = setInterval(() => this.connectAndSupressWarnings(), this.reconnectionIntervalTime);
         }
     }

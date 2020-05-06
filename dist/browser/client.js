@@ -40,6 +40,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         this.authenticated = false;
         this.queue = [];
         this.rules = [];
+        this.isAutomaticReconnection = false;
+        this.didForcefullyDisconnect = false;
         this.authenticate = function (data) { return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 this.authenticationResolve = resolve;
@@ -58,8 +60,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
             if (_this.reconnectionIntervalId)
                 clearInterval(_this.reconnectionIntervalId);
             if (_this.ws && _this.ws.readyState === _this.ws.OPEN)
-                throw new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again');
+                return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'));
             _this.ws = new WebSocket(_this.url);
+            _this.didForcefullyDisconnect = false;
             var resolveConnection = function () {
                 _this.ws.removeEventListener('open', resolveConnection);
                 resolve();
@@ -92,6 +95,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     };
     MesaClient.prototype.disconnect = function (code, data) {
         this.ws.close(code, data);
+        this.didForcefullyDisconnect = true;
+        if (this.reconnectionIntervalId)
+            clearInterval(this.reconnectionIntervalId);
     };
     MesaClient.prototype.parseConfig = function (config) {
         if (!config)
@@ -107,7 +113,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     };
     MesaClient.prototype.registerOpen = function () {
         if (this.onConnected)
-            this.onConnected();
+            this.onConnected(this.isAutomaticReconnection);
+        if (this.isAutomaticReconnection)
+            this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {
             this.queue.forEach(this.sendRaw);
             this.queue = [];
@@ -135,7 +143,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                 if (c_authentication_timeout)
                     this.authenticationTimeout = c_authentication_timeout;
                 if (rules.indexOf('enforce_equal_versions') > -1)
-                    this.send(0, { v: '1.2.10"' }, 'CLIENT_VERSION');
+                    this.send(0, { v: '1.2.10' }, 'CLIENT_VERSION');
                 if (rules.indexOf('store_messages') > -1)
                     this.messages = { sent: [], recieved: [] };
                 this.rules = rules;
@@ -147,18 +155,19 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                 return;
         }
         if (this.onMessage)
-            this.onMessage(json);
+            this.onMessage({ opcode: opcode, data: data, type: type });
         if (this.rules.indexOf('store_messages') > -1)
             this.messages.recieved.push(json);
     };
     MesaClient.prototype.registerClose = function (code, reason) {
         var _this = this;
         if (this.onDisconnected)
-            this.onDisconnected(code, reason);
-        if (this.reconnectionIntervalTime) {
+            this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
+        if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);
             this.ws = null;
+            this.isAutomaticReconnection = true;
             this.reconnectionIntervalId = setInterval(function () { return _this.connectAndSupressWarnings(); }, this.reconnectionIntervalTime);
         }
     };

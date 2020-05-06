@@ -13,12 +13,20 @@ export interface IClientConnectionConfig {
     c_authentication_timeout?: number;
     rules?: Rule[];
 }
-export interface Message {
+export interface RecievedMessage {
     op: Opcode;
     d: Data;
     t?: Type;
 }
+export interface Message {
+    opcode: Opcode;
+    data: Data;
+    type?: Type;
+}
 export interface Messages {
-    sent: Message[];
-    recieved: Message[];
+    sent: RecievedMessage[];
+    recieved: RecievedMessage[];
+}
+export interface DisconnectionOptions {
+    willAttemptReconnect: boolean;
 }

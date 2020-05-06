@@ -1,4 +1,4 @@
-import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConnectionConfig } from './defs'
+import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, Type, IClientConnectionConfig, DisconnectionOptions } from './defs'
 
 /*export default*/ class MesaClient {
 	public url: string
@@ -9,7 +9,7 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 	private config: IClientConfig
 
 	private ws: WebSocket
-	private queue: Message[] = []
+	private queue: RecievedMessage[] = []
 
 	private rules: Rule[] = []
 
@@ -21,10 +21,13 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 
 	private authenticationResolve: (value?: unknown) => void
 
-	onConnected: () => void
+	onConnected: (isAutomaticReconnection?: boolean) => void
 	onMessage: (message: Message) => void
-	onDisconnected: (code: number, reason: string) => void
+	onDisconnected: (code: number, reason: string, options: DisconnectionOptions) => void
 	onError: (error: Error) => void
+
+	private isAutomaticReconnection: boolean = false
+	private didForcefullyDisconnect: boolean = false
 
 	constructor(url: string, config?: IClientConfig) {
 		this.url = url
@@ -40,10 +43,12 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 				clearInterval(this.reconnectionIntervalId)
 	
 			if (this.ws && this.ws.readyState === this.ws.OPEN)
-				throw new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again')
+				return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'))
 	
 			this.ws = new WebSocket(this.url)
 	
+			this.didForcefullyDisconnect = false
+
 			const resolveConnection = () => {
 				this.ws.removeEventListener('open', resolveConnection)
 				resolve()
@@ -66,12 +71,12 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 	}
 
 	public send(opcode: Opcode, data: Data, type?: Type) {
-		const message: Message = { op: opcode, d: data, t: type }
+		const message: RecievedMessage = { op: opcode, d: data, t: type }
 
 		this.sendRaw(message)
 	}
 
-	private sendRaw(message: Message) {
+	private sendRaw(message: RecievedMessage) {
 		if (this.ws.readyState !== this.ws.OPEN)
 			return this.queue.push(message)
 
@@ -88,6 +93,11 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 
 	public disconnect(code?: number, data?: string) {
 		this.ws.close(code, data)
+
+		this.didForcefullyDisconnect = true
+
+		if(this.reconnectionIntervalId)
+			clearInterval(this.reconnectionIntervalId)
 	}
 
 	private parseConfig(config?: IClientConfig) {
@@ -108,7 +118,10 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 
 	private registerOpen() {
 		if (this.onConnected)
-			this.onConnected()
+			this.onConnected(this.isAutomaticReconnection)
+
+		if(this.isAutomaticReconnection)
+			this.isAutomaticReconnection = false
 
 		if (this.queue.length > 0) {
 			this.queue.forEach(this.sendRaw)
@@ -117,7 +130,7 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 	}
 
 	private registerMessage({ data: _data }: MessageEvent) {
-		let json: Message
+		let json: RecievedMessage
 
 		try {
 			json = JSON.parse(_data.toString())
@@ -148,7 +161,7 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 					this.authenticationTimeout = c_authentication_timeout
 
 				if (rules.indexOf('enforce_equal_versions') > -1)
-					this.send(0, { v: '1.2.10"' }, 'CLIENT_VERSION')
+					this.send(0, { v: '1.2.10' }, 'CLIENT_VERSION')
 
 				if (rules.indexOf('store_messages') > -1)
 					this.messages = { sent: [], recieved: [] }
@@ -166,7 +179,7 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 		}
 
 		if (this.onMessage)
-			this.onMessage(json)
+			this.onMessage({ opcode, data, type })
 
 		if (this.rules.indexOf('store_messages') > -1)
 			this.messages.recieved.push(json)
@@ -174,13 +187,14 @@ import { Messages, IClientConfig, Message, Rule, Opcode, Data, Type, IClientConn
 
 	private registerClose(code?: number, reason?: string) {
 		if (this.onDisconnected)
-			this.onDisconnected(code, reason)
+			this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) })
 
-		if (this.reconnectionIntervalTime) {
+		if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
 			if (this.reconnectionIntervalId)
 				clearInterval(this.reconnectionIntervalId)
 
 			this.ws = null
+			this.isAutomaticReconnection = true
 			this.reconnectionIntervalId = setInterval(() => this.connectAndSupressWarnings(), this.reconnectionIntervalTime)
 		}
 	}

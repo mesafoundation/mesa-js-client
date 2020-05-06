@@ -5,7 +5,7 @@
 		const client = new MesaClient('ws://localhost:4500')
 
 		client.onConnected = () => console.log('Connected')
-		client.onMessage = (op, d, t) => console.log('Recieved', op, d, t)
+		client.onMessage = ({ opcode, data, type }) => console.log('Recieved', opcode, data, type)
 		client.onDisconnected = () => console.log('Disconnected')
 
 		client.connect()
