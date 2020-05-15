@@ -148,7 +148,7 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 			return console.error(error)
 		}
 
-		const { op: opcode, d: data, t: type } = json
+		const { op: opcode, d: data, t: type, s: sequence } = json
 
 		switch (opcode) {
 			case 1:
@@ -189,7 +189,7 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 		}
 
 		if (this.onMessage)
-			this.onMessage({ opcode, data, type })
+			this.onMessage({ opcode, data, type, sequence })
 
 		if (this.rules.indexOf('store_messages') > -1)
 			this.messages.recieved.push(json)
@@ -198,6 +198,9 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 	private registerClose(code?: number, reason?: string) {
 		if (this.onDisconnected)
 			this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) })
+
+		if (this.didForcefullyDisconnect)
+			this.isInitialConnection = true
 
 		if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
 			if (this.reconnectionIntervalId)

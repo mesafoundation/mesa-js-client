@@ -3,6 +3,7 @@ export type Data = {
 	[key in string]?: any
 }
 export type Type = string
+export type Sequence = number
 
 // Connect
 export type Rule = 'enforce_equal_versions' | 'store_messages' | 'sends_user_object'
@@ -24,12 +25,14 @@ export interface RecievedMessage {
 	op: Opcode
 	d: Data
 	t?: Type
+	s?: Sequence
 }
 
 export interface Message {
 	opcode: Opcode
 	data: Data
 	type?: Type
+	sequence?: Sequence
 }
 
 export interface Messages {
