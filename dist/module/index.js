@@ -95,7 +95,7 @@ class MesaClient {
         catch (error) {
             return console.error(error);
         }
-        const { op: opcode, d: data, t: type } = json;
+        const { op: opcode, d: data, t: type, s: sequence } = json;
         switch (opcode) {
             case 1:
                 return this.send(11, {});
@@ -120,13 +120,15 @@ class MesaClient {
                 return;
         }
         if (this.onMessage)
-            this.onMessage({ opcode, data, type });
+            this.onMessage({ opcode, data, type, sequence });
         if (this.rules.indexOf('store_messages') > -1)
             this.messages.recieved.push(json);
     }
     registerClose(code, reason) {
         if (this.onDisconnected)
             this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
+        if (this.didForcefullyDisconnect)
+            this.isInitialConnection = true;
         if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);

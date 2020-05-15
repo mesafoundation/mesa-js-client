@@ -138,7 +138,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         catch (error) {
             return console.error(error);
         }
-        var opcode = json.op, data = json.d, type = json.t;
+        var opcode = json.op, data = json.d, type = json.t, sequence = json.s;
         switch (opcode) {
             case 1:
                 return this.send(11, {});
@@ -163,7 +163,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                 return;
         }
         if (this.onMessage)
-            this.onMessage({ opcode: opcode, data: data, type: type });
+            this.onMessage({ opcode: opcode, data: data, type: type, sequence: sequence });
         if (this.rules.indexOf('store_messages') > -1)
             this.messages.recieved.push(json);
     };
@@ -171,6 +171,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         var _this = this;
         if (this.onDisconnected)
             this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
+        if (this.didForcefullyDisconnect)
+            this.isInitialConnection = true;
         if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);

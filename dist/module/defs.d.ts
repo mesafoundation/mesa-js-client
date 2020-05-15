@@ -3,6 +3,7 @@ export declare type Data = {
     [key in string]?: any;
 };
 export declare type Type = string;
+export declare type Sequence = number;
 export declare type Rule = 'enforce_equal_versions' | 'store_messages' | 'sends_user_object';
 export interface IClientConfig {
     autoConnect?: boolean;
@@ -17,11 +18,13 @@ export interface RecievedMessage {
     op: Opcode;
     d: Data;
     t?: Type;
+    s?: Sequence;
 }
 export interface Message {
     opcode: Opcode;
     data: Data;
     type?: Type;
+    sequence?: Sequence;
 }
 export interface Messages {
     sent: RecievedMessage[];
