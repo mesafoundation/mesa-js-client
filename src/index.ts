@@ -1,4 +1,20 @@
-import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, Type, IClientConnectionConfig, DisconnectionOptions, ConnectionOptions } from './defs'
+import {
+	Message,
+	Messages,
+
+	IClientConfig,
+	IClientConnectionConfig,
+	IClientAuthenticationConfig,
+
+	RecievedMessage, Rule,
+
+	Opcode,
+	Data,
+	Type,
+
+	ConnectionOptions,
+	DisconnectionOptions
+} from './defs'
 
 /*export default*/ class MesaClient {
 	public url: string
@@ -27,7 +43,9 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 	onError: (error: Error) => void
 
 	// Connection Options
-	private isInitialConnection: boolean = true
+	private isInitialConnection: boolean = true // First connection (not counting force disconnections)
+	private isInitialSessionConnection: boolean = true // First session connection connection (counting force disconnections)
+	
 	private isAutomaticReconnection: boolean = false
 
 	// Disconnection Options
@@ -90,9 +108,11 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 		this.ws.send(JSON.stringify(message))
 	}
 
-	public authenticate = (data: object) => new Promise(async (resolve, reject) => {
+	public authenticate = (data: object, config?: IClientAuthenticationConfig) => new Promise(async (resolve, reject) => {
+		config = this.parseAuthenticationConfig(config)
+
 		this.authenticationResolve = resolve
-		this.send(2, data)
+		this.send(2, {...data, ...config})
 	})
 
 	public disconnect(code?: number, data?: string) {
@@ -114,6 +134,16 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 		return config
 	}
 
+	private parseAuthenticationConfig(config?: IClientAuthenticationConfig) {
+		if (!config)
+			config = {}
+
+		if (typeof config.shouldSync === 'undefined')
+			config.shouldSync = true
+
+		return config
+	}
+
 	private connectAndSupressWarnings() {
 		this.connect()
 			.then(() => { })
@@ -124,11 +154,16 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 		if (this.onConnected)
 			this.onConnected({
 				isInitialConnection: this.isInitialConnection,
+				isInitialSessionConnection: this.isInitialSessionConnection,
+
 				isAutomaticReconnection: this.isAutomaticReconnection
 			})
 
 		if(this.isInitialConnection)
 			this.isInitialConnection = false
+
+		if(this.isInitialSessionConnection)
+			this.isInitialSessionConnection = false
 
 		if(this.isAutomaticReconnection)
 			this.isAutomaticReconnection = false
@@ -200,7 +235,7 @@ import { Messages, IClientConfig, Message, RecievedMessage, Rule, Opcode, Data, 
 			this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) })
 
 		if (this.didForcefullyDisconnect)
-			this.isInitialConnection = true
+			this.isInitialSessionConnection = true
 
 		if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
 			if (this.reconnectionIntervalId)

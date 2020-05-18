@@ -1,4 +1,4 @@
-import { Messages, IClientConfig, Message, Opcode, Data, Type, DisconnectionOptions, ConnectionOptions } from './defs';
+import { Message, Messages, IClientConfig, IClientAuthenticationConfig, Opcode, Data, Type, ConnectionOptions, DisconnectionOptions } from './defs';
 export default class MesaClient {
     url: string;
     authenticated: boolean;
@@ -17,15 +17,17 @@ export default class MesaClient {
     onDisconnected: (code: number, reason: string, options: DisconnectionOptions) => void;
     onError: (error: Error) => void;
     private isInitialConnection;
+    private isInitialSessionConnection;
     private isAutomaticReconnection;
     private didForcefullyDisconnect;
     constructor(url: string, config?: IClientConfig);
     connect(): Promise<unknown>;
     send(opcode: Opcode, data: Data, type?: Type): void;
     private sendRaw;
-    authenticate: (data: object) => Promise<unknown>;
+    authenticate: (data: object, config?: IClientAuthenticationConfig) => Promise<unknown>;
     disconnect(code?: number, data?: string): void;
     private parseConfig;
+    private parseAuthenticationConfig;
     private connectAndSupressWarnings;
     private registerOpen;
     private registerMessage;

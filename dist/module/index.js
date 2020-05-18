@@ -6,13 +6,15 @@ class MesaClient {
         this.queue = [];
         this.rules = [];
         // Connection Options
-        this.isInitialConnection = true;
+        this.isInitialConnection = true; // First connection (not counting force disconnections)
+        this.isInitialSessionConnection = true; // First session connection connection (counting force disconnections)
         this.isAutomaticReconnection = false;
         // Disconnection Options
         this.didForcefullyDisconnect = false;
-        this.authenticate = (data) => new Promise(async (resolve, reject) => {
+        this.authenticate = (data, config) => new Promise(async (resolve, reject) => {
+            config = this.parseAuthenticationConfig(config);
             this.authenticationResolve = resolve;
-            this.send(2, data);
+            this.send(2, Object.assign(Object.assign({}, data), config));
         });
         this.url = url;
         this.config = this.parseConfig(config);
@@ -67,6 +69,13 @@ class MesaClient {
             config.autoConnect = true;
         return config;
     }
+    parseAuthenticationConfig(config) {
+        if (!config)
+            config = {};
+        if (typeof config.shouldSync === 'undefined')
+            config.shouldSync = true;
+        return config;
+    }
     connectAndSupressWarnings() {
         this.connect()
             .then(() => { })
@@ -76,10 +85,13 @@ class MesaClient {
         if (this.onConnected)
             this.onConnected({
                 isInitialConnection: this.isInitialConnection,
+                isInitialSessionConnection: this.isInitialSessionConnection,
                 isAutomaticReconnection: this.isAutomaticReconnection
             });
         if (this.isInitialConnection)
             this.isInitialConnection = false;
+        if (this.isInitialSessionConnection)
+            this.isInitialSessionConnection = false;
         if (this.isAutomaticReconnection)
             this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {
@@ -128,7 +140,7 @@ class MesaClient {
         if (this.onDisconnected)
             this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
         if (this.didForcefullyDisconnect)
-            this.isInitialConnection = true;
+            this.isInitialSessionConnection = true;
         if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);

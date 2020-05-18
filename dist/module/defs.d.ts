@@ -8,6 +8,9 @@ export declare type Rule = 'enforce_equal_versions' | 'store_messages' | 'sends_
 export interface IClientConfig {
     autoConnect?: boolean;
 }
+export interface IClientAuthenticationConfig {
+    shouldSync?: boolean;
+}
 export interface IClientConnectionConfig {
     c_heartbeat_interval?: number;
     c_reconnect_interval?: number;
@@ -32,6 +35,7 @@ export interface Messages {
 }
 export interface ConnectionOptions {
     isInitialConnection: boolean;
+    isInitialSessionConnection: boolean;
     isAutomaticReconnection: boolean;
 }
 export interface DisconnectionOptions {

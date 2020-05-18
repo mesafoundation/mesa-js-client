@@ -1,3 +1,14 @@
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,14 +52,16 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         this.queue = [];
         this.rules = [];
         // Connection Options
-        this.isInitialConnection = true;
+        this.isInitialConnection = true; // First connection (not counting force disconnections)
+        this.isInitialSessionConnection = true; // First session connection connection (counting force disconnections)
         this.isAutomaticReconnection = false;
         // Disconnection Options
         this.didForcefullyDisconnect = false;
-        this.authenticate = function (data) { return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+        this.authenticate = function (data, config) { return new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
+                config = this.parseAuthenticationConfig(config);
                 this.authenticationResolve = resolve;
-                this.send(2, data);
+                this.send(2, __assign(__assign({}, data), config));
                 return [2 /*return*/];
             });
         }); }); };
@@ -109,6 +122,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
             config.autoConnect = true;
         return config;
     };
+    MesaClient.prototype.parseAuthenticationConfig = function (config) {
+        if (!config)
+            config = {};
+        if (typeof config.shouldSync === 'undefined')
+            config.shouldSync = true;
+        return config;
+    };
     MesaClient.prototype.connectAndSupressWarnings = function () {
         this.connect()
             .then(function () { })
@@ -118,10 +138,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (this.onConnected)
             this.onConnected({
                 isInitialConnection: this.isInitialConnection,
+                isInitialSessionConnection: this.isInitialSessionConnection,
                 isAutomaticReconnection: this.isAutomaticReconnection
             });
         if (this.isInitialConnection)
             this.isInitialConnection = false;
+        if (this.isInitialSessionConnection)
+            this.isInitialSessionConnection = false;
         if (this.isAutomaticReconnection)
             this.isAutomaticReconnection = false;
         if (this.queue.length > 0) {
@@ -172,7 +195,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (this.onDisconnected)
             this.onDisconnected(code, reason, { willAttemptReconnect: (!!this.reconnectionIntervalTime && !this.didForcefullyDisconnect) });
         if (this.didForcefullyDisconnect)
-            this.isInitialConnection = true;
+            this.isInitialSessionConnection = true;
         if (this.reconnectionIntervalTime && !this.didForcefullyDisconnect) {
             if (this.reconnectionIntervalId)
                 clearInterval(this.reconnectionIntervalId);
