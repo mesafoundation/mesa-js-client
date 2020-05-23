@@ -1,7 +1,7 @@
 # mesa-js-client
 A simple JavaScript client for connecting to Mesa servers.
 
-**Important**: `mesa-js-client` is only recommended for use in non-Node.js environments. Please use the `Client` implementation in [@cryb/mesa](https://github.com/crybapp/mesa) if you're attempting to connect to a mesa server from a Node.js environment
+**Important**: `mesa-js-client` is only recommended for use in non-Node.js environments. Please use the `Client` implementation in [@cryb/mesa](https://github.com/crybapp/mesa) if you're attempting to connect to a Mesa server from a Node.js environment
 
 ## Installation
 ### Module

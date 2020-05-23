@@ -18,13 +18,13 @@ import {
 
 /*export default*/ class MesaClient {
 	public url: string
+	public ws: WebSocket
 
 	public authenticated: boolean = false
 
 	public messages: Messages
 	private config: IClientConfig
 
-	private ws: WebSocket
 	private queue: RecievedMessage[] = []
 
 	private rules: Rule[] = []
@@ -99,6 +99,9 @@ import {
 	}
 
 	private sendRaw(message: RecievedMessage) {
+		if (!this.ws)
+			return // Add better alert system here
+		
 		if (this.ws.readyState !== this.ws.OPEN)
 			return this.queue.push(message)
 
@@ -206,7 +209,7 @@ import {
 					this.authenticationTimeout = c_authentication_timeout
 
 				if (rules.indexOf('enforce_equal_versions') > -1)
-					this.send(0, { v: '1.2.10' }, 'CLIENT_VERSION')
+					this.send(0, { v: '1.4.3' }, 'CLIENT_VERSION')
 
 				if (rules.indexOf('store_messages') > -1)
 					this.messages = { sent: [], recieved: [] }
@@ -219,12 +222,18 @@ import {
 
 				if (this.rules.indexOf('sends_user_object') > -1 && this.authenticationResolve)
 					this.authenticationResolve(data)
+				else
+					this.authenticationResolve()
 
 				return
 		}
 
+		const message  = { opcode, data, type } as Message
+		if(sequence)
+			message.sequence = sequence
+
 		if (this.onMessage)
-			this.onMessage({ opcode, data, type, sequence })
+			this.onMessage(message)
 
 		if (this.rules.indexOf('store_messages') > -1)
 			this.messages.recieved.push(json)
