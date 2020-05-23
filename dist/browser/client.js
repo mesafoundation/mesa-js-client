@@ -103,6 +103,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         this.sendRaw(message);
     };
     MesaClient.prototype.sendRaw = function (message) {
+        if (!this.ws)
+            return; // Add better alert system here
         if (this.ws.readyState !== this.ws.OPEN)
             return this.queue.push(message);
         if (this.rules.indexOf('store_messages') > -1)
@@ -174,7 +176,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                 if (c_authentication_timeout)
                     this.authenticationTimeout = c_authentication_timeout;
                 if (rules.indexOf('enforce_equal_versions') > -1)
-                    this.send(0, { v: '1.2.10' }, 'CLIENT_VERSION');
+                    this.send(0, { v: '1.4.3' }, 'CLIENT_VERSION');
                 if (rules.indexOf('store_messages') > -1)
                     this.messages = { sent: [], recieved: [] };
                 this.rules = rules;
@@ -183,10 +185,15 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
                 this.authenticated = true;
                 if (this.rules.indexOf('sends_user_object') > -1 && this.authenticationResolve)
                     this.authenticationResolve(data);
+                else
+                    this.authenticationResolve();
                 return;
         }
+        var message = { opcode: opcode, data: data, type: type };
+        if (sequence)
+            message.sequence = sequence;
         if (this.onMessage)
-            this.onMessage({ opcode: opcode, data: data, type: type, sequence: sequence });
+            this.onMessage(message);
         if (this.rules.indexOf('store_messages') > -1)
             this.messages.recieved.push(json);
     };

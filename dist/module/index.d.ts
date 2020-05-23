@@ -1,10 +1,10 @@
 import { Message, Messages, IClientConfig, IClientAuthenticationConfig, Opcode, Data, Type, ConnectionOptions, DisconnectionOptions } from './defs';
 export default class MesaClient {
     url: string;
+    ws: WebSocket;
     authenticated: boolean;
     messages: Messages;
     private config;
-    private ws;
     private queue;
     private rules;
     private heartbeatIntervalTime;
