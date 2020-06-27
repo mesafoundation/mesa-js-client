@@ -50,7 +50,7 @@ class MesaClient {
         this.sendRaw(message);
     }
     sendRaw(message) {
-        if (!this.ws)
+        if (typeof this.ws === 'undefined')
             return; // Add better alert system here
         if (this.ws.readyState !== this.ws.OPEN)
             return this.queue.push(message);

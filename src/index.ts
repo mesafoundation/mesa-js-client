@@ -99,7 +99,7 @@ import {
 	}
 
 	private sendRaw(message: RecievedMessage) {
-		if (!this.ws)
+		if (typeof this.ws === 'undefined')
 			return // Add better alert system here
 		
 		if (this.ws.readyState !== this.ws.OPEN)
