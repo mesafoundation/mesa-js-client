@@ -68,7 +68,7 @@ class MesaClient {
         if (!config)
             config = {};
         if (typeof config.autoConnect === 'undefined')
-            config.autoConnect = true;
+            config.autoConnect = false;
         return config;
     }
     parseAuthenticationConfig(config) {
