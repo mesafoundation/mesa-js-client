@@ -43,6 +43,16 @@ const client = new MesaClient('ws://localhost:4000', { autoConnect: false })
 client.connect()
 ```
 
+### Authentication
+`mesa-js-client` also supports authentication through the Mesa Authentication API. Once enabled on the server, client-side authentication material can be sent like this:
+```js
+client.onConnected = async () => {
+	const user = await client.authenticate({ token: fetchToken() }, { shouldSync: true })
+}
+```
+
+The second parameter in the `client.authenticate` method is an optional configuration object that can be supplied with information such as `shouldSync`, which matches the Mesa usage of sending undelivered messages since the last disconnection
+
 ### Example
 #### Module
 ```js
@@ -51,47 +61,57 @@ import MesaClient from 'mesa-js-client'
 const client = new MesaClient('ws://localhost:4000')
 
 client.onConnected = () => {
-	console.log('Connected to Mesa server')
+  console.log('Connected to Mesa server')
 }
 
 client.onMessage = ({ opcode, data, type }) => {
-	console.log('Recieved', opcode, data, type)
+  console.log('Recieved', opcode, data, type)
+
+  switch(type) {
+    case 'PING':
+    client.send(0, {}, 'PONG')
+    break
+  }
 }
 
 client.onDisconnected = (code, reason) => {
-	console.log('Disconnected', code, reason)
+  console.log('Disconnected', code, reason)
 }
 
 client.onError = error => {
-	console.log('Error', error)
+  console.log('Error', error)
 }
-
-client.connect()
 ```
 
 #### Browser
 ```html
 <script src="js/mesa-js-client.js"></script>
 <script>
-	const client = new MesaClient("ws://localhost:4000")
+  const client = new MesaClient("ws://localhost:4000")
 
-	client.onConnected = function() {
-		console.log("Connected to Mesa server")
-	}
+  client.onConnected = function() {
+    console.log("Connected to Mesa server")
+  }
 
-	client.onMessage = function({ opcode, data, type }) {
-		console.log("Recieved", opcode, data, type)
-	}
+  client.onMessage = function({ opcode, data, type }) {
+    console.log("Recieved", opcode, data, type)
 
-	client.onDisconnected = function(code, reason) {
-		console.log("Disconnected", code, reason)
-	}
+    switch(type) {
+      case "PING":
+      client.send(0, {}, "PONG")
+      break
+    }
+  }
 
-	client.onError = function(error) {
-		console.log("Error", error)
-	}
+  client.onDisconnected = function(code, reason) {
+    console.log("Disconnected", code, reason)
+  }
 
-	client.connect()
+  client.onError = function(error) {
+    console.log("Error", error)
+  }
+
+  client.connect()
 </script>
 ```
 
