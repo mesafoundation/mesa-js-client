@@ -50,7 +50,7 @@ client.onMessage = ({ opcode, data, type }) => {
 	console.log('Recieved', opcode, data, type)
 }
 
-client.onDisconnect = (code, reason) => {
+client.onDisconnected = (code, reason) => {
 	console.log('Disconnected', code, reason)
 }
 
