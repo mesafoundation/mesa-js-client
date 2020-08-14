@@ -30,10 +30,18 @@ To install the browser library, copy `dist/browser/client.js` and refer to it in
 The client API is more or less identical to the `Client` implementation in `@cryb/mesa`, with a few caveats:
 
 * `mesa-js-client` does not use `EventEmitter` in order to inform the application of events. Instead, we use callbacks in the form of:
-	* `onConnected: () => void`
-	* `onMessage: (message: Message) => void`
-	* `onDisconnected: (code: number, reason: string) => void`
-	* `onError: (error: Error) => void`
+  * `onConnected: () => void`
+  * `onMessage: (message: Message) => void`
+  * `onDisconnected: (code: number, reason: string) => void`
+  * `onError: (error: Error) => void`
+
+The constructor for `MesaClient` also allows for options to be passed in:
+```js
+const client = new MesaClient('ws://localhost:4000', { autoConnect: false })
+
+// With autoConnect set to false, client.connect will now need to be called in order for the connected to begin
+client.connect()
+```
 
 ### Example
 #### Module
