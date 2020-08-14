@@ -1,6 +1,6 @@
 {
   "name": "mesa-js-client",
-  "version": "1.4.5",
+  "version": "1.4.6",
   "description": "JavaScript client for Mesa WebSocket server",
   "main": "dist/module/index.js",
   "types": "dist/module/index.d.ts",
