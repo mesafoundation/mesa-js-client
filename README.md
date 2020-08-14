@@ -38,12 +38,11 @@ The client API is more or less identical to the `Client` implementation in `@cry
 ### Example
 #### Module
 ```js
-import MesaClient from 'mesa-js-client/dist/module'
-// Bug fix for /dist/module hack coming soon
+import MesaClient from 'mesa-js-client'
 
 const client = new MesaClient('ws://localhost:4000')
 
-client.onConnect = () => {
+client.onConnected = () => {
 	console.log('Connected to Mesa server')
 }
 
@@ -55,7 +54,7 @@ client.onDisconnect = (code, reason) => {
 	console.log('Disconnected', code, reason)
 }
 
-client.onDisconnect = error => {
+client.onError = error => {
 	console.log('Error', error)
 }
 

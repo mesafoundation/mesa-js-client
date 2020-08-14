@@ -121,7 +121,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (!config)
             config = {};
         if (typeof config.autoConnect === 'undefined')
-            config.autoConnect = true;
+            config.autoConnect = false;
         return config;
     };
     MesaClient.prototype.parseAuthenticationConfig = function (config) {
