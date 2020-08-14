@@ -47,7 +47,7 @@ client.connect()
 `mesa-js-client` also supports authentication through the Mesa Authentication API. Once enabled on the server, client-side authentication material can be sent like this:
 ```js
 client.onConnected = async () => {
-	const user = await client.authenticate({ token: fetchToken() }, { shouldSync: true })
+  const user = await client.authenticate({ token: fetchToken() }, { shouldSync: true })
 }
 ```
 

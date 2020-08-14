@@ -252,7 +252,7 @@ import {
 
       this.ws = null
       this.isAutomaticReconnection = true
-      this.reconnectionIntervalId = setInterval(() => this.connectAndSupressWarnings(), this.reconnectionIntervalTime)
+      this.reconnectionIntervalId = setInterval(() => this.connectAndSupressWarnings(), this.reconnectionIntervalTime) as any
     }
   }
 
