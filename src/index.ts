@@ -32,7 +32,7 @@ import {
   private heartbeatIntervalTime: number
   private authenticationTimeout: number
 
-  private reconnectionIntervalId: NodeJS.Timeout
+  private reconnectionIntervalId: number
   private reconnectionIntervalTime: number
 
   private authenticationResolve: (value?: unknown) => void
@@ -132,7 +132,7 @@ import {
       config = {}
 
     if (typeof config.autoConnect === 'undefined')
-      config.autoConnect = false
+      config.autoConnect = true
 
     return config
   }
