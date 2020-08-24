@@ -12,6 +12,7 @@ function clean (cb) {
   del([
     'dist/**/*'
   ])
+  
   cb()
 }
 
