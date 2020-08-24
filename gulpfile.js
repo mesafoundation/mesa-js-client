@@ -9,28 +9,28 @@ const tsModule = ts.createProject('tsconfig.module.json')
 const tsBrowser = ts.createProject('tsconfig.browser.json')
 
 function clean (cb) {
-	del([
-		'dist/**/*'
-	])
-	cb()
+  del([
+    'dist/**/*'
+  ])
+  cb()
 }
 
 function module (cb) {
-	src('src/*.ts')
-		.pipe(replace('/*export default*/', 'export default'))
-		.pipe(tsModule())
-		.pipe(dest('dist/module'))
+  src('src/*.ts')
+    .pipe(replace('/*export default*/', 'export default'))
+    .pipe(tsModule())
+    .pipe(dest('dist/module'))
 
-	cb()
+  cb()
 }
 
 function browser (cb) {
-	src('src/index.ts')
-		.pipe(tsBrowser())
-		.pipe(rename({ basename: 'client' }))
-		.pipe(dest('dist/browser'))
-	
-	cb()
+  src('src/index.ts')
+    .pipe(tsBrowser())
+    .pipe(rename({ basename: 'client' }))
+    .pipe(dest('dist/browser'))
+  
+  cb()
 }
 
 exports.default = series(clean, module, browser)
