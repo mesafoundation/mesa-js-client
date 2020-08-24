@@ -11,13 +11,14 @@
   "author": "William Gibson <william@tired.io>",
   "license": "MIT",
   "scripts": {
-    "build": "rm -rf dist && yarn build:module && yarn build:browser",
+    "build": "gulp",
     "build:module": "gulp module",
     "build:browser": "gulp browser",
     "deploy": "yarn build && yarn publish"
   },
   "devDependencies": {
     "@types/node": "^14.0.27",
+    "del": "^5.1.0",
     "gulp": "^4.0.2",
     "gulp-typescript": "^6.0.0-alpha.1",
     "typescript": "^3.8.3"
