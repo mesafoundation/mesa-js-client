@@ -1,19 +1,19 @@
 {
-	"compilerOptions": {
-	  "target": "es2017",
-	  "module": "commonjs",
-	  "lib": [
-		"dom",
-		"es2017"
-	  ],
-	  "declaration": true,
-	  "noImplicitAny": false,
-	  "esModuleInterop": true,
-	  "inlineSourceMap": true,
-	  "experimentalDecorators": true,
-	  "emitDecoratorMetadata": true,
-	  "allowSyntheticDefaultImports": true,
-	  "outDir": "./dist/module"
-	},
-	"include": ["./src"]
+  "compilerOptions": {
+    "target": "es2017",
+    "module": "commonjs",
+    "lib": [
+      "dom",
+      "es2017"
+    ],
+    "declaration": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "inlineSourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist/module"
+  },
+  "include": ["./src"]
   }

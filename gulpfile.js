@@ -12,7 +12,7 @@ function clean (cb) {
   del([
     'dist/**/*'
   ])
-  
+
   cb()
 }
 
@@ -30,7 +30,7 @@ function browser (cb) {
     .pipe(tsBrowser())
     .pipe(rename({ basename: 'client' }))
     .pipe(dest('dist/browser'))
-  
+
   cb()
 }
 
