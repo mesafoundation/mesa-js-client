@@ -2,8 +2,11 @@
   "name": "mesa-js-client",
   "version": "1.4.6",
   "description": "JavaScript client for Mesa WebSocket server",
-  "main": "lib/module/index.js",
-  "types": "lib/module/index.d.ts",
+  "main": "lib/mesa-js-client.js",
+  "module": "lib/mesa-js-client.module.js",
+  "unpkg": "lib/mesa-js-client.umd.js",
+  "types": "lib/index.d.ts",
+  "source": "src/index.ts",
   "files": [
     "lib/**/*"
   ],
@@ -11,18 +14,12 @@
   "author": "William Gibson <william@tired.io>",
   "license": "MIT",
   "scripts": {
-    "build": "gulp",
-    "build:module": "gulp module",
-    "build:browser": "gulp browser"
+    "build": "microbundle build --name MesaClient -o lib"
   },
   "devDependencies": {
     "@types/node": "^14.0.27",
     "@types/ws": "^7.4.0",
-    "del": "^5.1.0",
-    "gulp": "^4.0.2",
-    "gulp-rename": "^2.0.0",
-    "gulp-replace": "^1.0.0",
-    "gulp-typescript": "^6.0.0-alpha.1",
+    "microbundle": "^0.12.4",
     "typescript": "^3.8.3"
   }
 }

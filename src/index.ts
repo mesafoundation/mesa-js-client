@@ -1,24 +1,63 @@
 import type WebSocket from 'ws'
 
-import {
-  Message,
-  Messages,
+export type Opcode = number
+export type Data = {
+  [key in string]?: any
+}
+export type Type = string
+export type Sequence = number
 
-  IClientConfig,
-  IClientConnectionConfig,
-  IClientAuthenticationConfig,
+// Connect
+export type Rule = 'enforce_equal_versions' | 'store_messages' | 'sends_user_object'
 
-  ReceivedMessage, Rule,
+export interface IClientConfig {
+  autoConnect?: boolean
+}
 
-  Opcode,
-  Data,
-  Type,
+export interface IClientAuthenticationConfig {
+  shouldSync?: boolean
+}
 
-  ConnectionOptions,
-  DisconnectionOptions
-} from './defs'
+export interface IClientConnectionConfig {
+  c_heartbeat_interval?: number
+  c_reconnect_interval?: number
+  c_authentication_timeout?: number
 
-/*export default*/ class MesaClient {
+  rules?: Rule[]
+}
+
+// Messages
+export interface ReceivedMessage {
+  op: Opcode
+  d: Data
+  t?: Type
+  s?: Sequence
+}
+
+export interface Message {
+  opcode: Opcode
+  data: Data
+  type?: Type
+  sequence?: Sequence
+}
+
+export interface Messages {
+  sent: ReceivedMessage[]
+  received: ReceivedMessage[]
+}
+
+export interface ConnectionOptions {
+  isInitialConnection: boolean
+  isInitialSessionConnection: boolean
+
+  isAutomaticReconnection: boolean
+}
+
+export interface DisconnectionOptions {
+  willAttemptReconnect: boolean
+}
+
+export default class MesaClient {
   public url: string
   public ws: WebSocket
 

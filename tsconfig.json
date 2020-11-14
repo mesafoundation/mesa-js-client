@@ -1,19 +1,19 @@
 {
   "compilerOptions": {
-    "target": "es2017",
-    "module": "commonjs",
+    "target": "esnext",
+    "module": "esnext",
     "lib": [
       "dom",
-      "es2017"
+      "es2015"
     ],
     "declaration": true,
     "noImplicitAny": false,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "inlineSourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
-    "outDir": "./lib/module"
+    "outDir": "./lib"
   },
   "include": ["./src"]
-  }
+}
