@@ -6,7 +6,7 @@ import {
   IClientConnectionConfig,
   IClientAuthenticationConfig,
 
-  RecievedMessage, Rule,
+  ReceivedMessage, Rule,
 
   Opcode,
   Data,
@@ -25,7 +25,7 @@ import {
   public messages: Messages
   private config: IClientConfig
 
-  private queue: RecievedMessage[] = []
+  private queue: ReceivedMessage[] = []
 
   private rules: Rule[] = []
 
@@ -45,7 +45,7 @@ import {
   // Connection Options
   private isInitialConnection: boolean = true // First connection (not counting force disconnections)
   private isInitialSessionConnection: boolean = true // First session connection connection (counting force disconnections)
-  
+
   private isAutomaticReconnection: boolean = false
 
   // Disconnection Options
@@ -63,28 +63,28 @@ import {
     return new Promise((resolve, reject) => {
       if (this.reconnectionIntervalId)
         clearInterval(this.reconnectionIntervalId)
-  
+
       if (this.ws && this.ws.readyState === this.ws.OPEN)
         return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'))
-  
+
       this.ws = new WebSocket(this.url)
-  
+
       this.didForcefullyDisconnect = false
 
       const resolveConnection = () => {
         this.ws.removeEventListener('open', resolveConnection)
         resolve()
       }
-  
+
       this.ws.addEventListener('open', resolveConnection)
-  
+
       const rejectError = error => {
         this.ws.removeEventListener('error', rejectError)
         reject(error)
       }
-  
+
       this.ws.addEventListener('error', rejectError)
-  
+
       this.ws.onopen = () => this.registerOpen()
       this.ws.onmessage = data => this.registerMessage(data)
       this.ws.onclose = ({ code, reason }) => this.registerClose(code, reason)
@@ -93,15 +93,15 @@ import {
   }
 
   public send(opcode: Opcode, data: Data, type?: Type) {
-    const message: RecievedMessage = { op: opcode, d: data, t: type }
+    const message: ReceivedMessage = { op: opcode, d: data, t: type }
 
     this.sendRaw(message)
   }
 
-  private sendRaw(message: RecievedMessage) {
+  private sendRaw(message: ReceivedMessage) {
     if (typeof this.ws === 'undefined')
       return // Add better alert system here
-    
+
     if (this.ws.readyState !== this.ws.OPEN)
       return this.queue.push(message)
 
@@ -178,7 +178,7 @@ import {
   }
 
   private registerMessage({ data: _data }: MessageEvent) {
-    let json: RecievedMessage
+    let json: ReceivedMessage
 
     try {
       json = JSON.parse(_data.toString())
@@ -212,7 +212,7 @@ import {
           this.send(0, { v: '1.4.3' }, 'CLIENT_VERSION')
 
         if (rules.indexOf('store_messages') > -1)
-          this.messages = { sent: [], recieved: [] }
+          this.messages = { sent: [], received: [] }
 
         this.rules = rules
 
@@ -236,7 +236,7 @@ import {
       this.onMessage(message)
 
     if (this.rules.indexOf('store_messages') > -1)
-      this.messages.recieved.push(json)
+      this.messages.received.push(json)
   }
 
   private registerClose(code?: number, reason?: string) {

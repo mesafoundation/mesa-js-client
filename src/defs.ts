@@ -25,7 +25,7 @@ export interface IClientConnectionConfig {
 }
 
 // Messages
-export interface RecievedMessage {
+export interface ReceivedMessage {
   op: Opcode
   d: Data
   t?: Type
@@ -40,14 +40,14 @@ export interface Message {
 }
 
 export interface Messages {
-  sent: RecievedMessage[]
-  recieved: RecievedMessage[]
+  sent: ReceivedMessage[]
+  received: ReceivedMessage[]
 }
 
 export interface ConnectionOptions {
   isInitialConnection: boolean
   isInitialSessionConnection: boolean
-  
+
   isAutomaticReconnection: boolean
 }
 

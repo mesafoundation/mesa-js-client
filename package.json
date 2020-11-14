@@ -7,14 +7,13 @@
   "files": [
     "dist/module"
   ],
-  "repository": "https://github.com/neoncloth/mesa-js-client.git",
+  "repository": "https://github.com/darnfish/mesa-js-client.git",
   "author": "William Gibson <william@tired.io>",
   "license": "MIT",
   "scripts": {
     "build": "gulp",
     "build:module": "gulp module",
-    "build:browser": "gulp browser",
-    "deploy": "yarn build && yarn publish"
+    "build:browser": "gulp browser"
   },
   "devDependencies": {
     "@types/node": "^14.0.27",
