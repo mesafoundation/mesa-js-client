@@ -13,7 +13,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
-    "outDir": "./dist/module"
+    "outDir": "./lib/module"
   },
   "include": ["./src"]
   }

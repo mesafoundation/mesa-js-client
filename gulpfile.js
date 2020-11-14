@@ -10,7 +10,7 @@ const tsBrowser = ts.createProject('tsconfig.browser.json')
 
 function clean (cb) {
   del([
-    'dist/**/*'
+    'lib/**/*'
   ])
 
   cb()
@@ -20,7 +20,7 @@ function module (cb) {
   src('src/*.ts')
     .pipe(replace('/*export default*/', 'export default'))
     .pipe(tsModule())
-    .pipe(dest('dist/module'))
+    .pipe(dest('lib/module'))
 
   cb()
 }
@@ -29,7 +29,7 @@ function browser (cb) {
   src('src/index.ts')
     .pipe(tsBrowser())
     .pipe(rename({ basename: 'client' }))
-    .pipe(dest('dist/browser'))
+    .pipe(dest('lib/browser'))
 
   cb()
 }
