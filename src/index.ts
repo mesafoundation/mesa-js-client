@@ -1,3 +1,5 @@
+import type WebSocket from 'ws'
+
 import {
   Message,
   Messages,
@@ -32,7 +34,7 @@ import {
   private heartbeatIntervalTime: number
   private authenticationTimeout: number
 
-  private reconnectionIntervalId: number
+  private reconnectionIntervalId: NodeJS.Timeout
   private reconnectionIntervalTime: number
 
   private authenticationResolve: (value?: unknown) => void
@@ -67,6 +69,7 @@ import {
       if (this.ws && this.ws.readyState === this.ws.OPEN)
         return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'))
 
+      // @ts-ignore
       this.ws = new WebSocket(this.url)
 
       this.didForcefullyDisconnect = false
@@ -128,29 +131,23 @@ import {
   }
 
   private parseConfig(config?: IClientConfig) {
-    if (!config)
-      config = {}
-
-    if (typeof config.autoConnect === 'undefined')
-      config.autoConnect = true
-
-    return config
+    return {
+      autoConnect: true,
+      ...config
+    }
   }
 
   private parseAuthenticationConfig(config?: IClientAuthenticationConfig) {
-    if (!config)
-      config = {}
-
-    if (typeof config.shouldSync === 'undefined')
-      config.shouldSync = true
-
-    return config
+    return {
+      shouldSync: true,
+      ...config
+    }
   }
 
   private connectAndSupressWarnings() {
     this.connect()
-      .then(() => { })
-      .catch(() => { })
+      .then(() => {})
+      .catch(() => {})
   }
 
   private registerOpen() {
@@ -162,14 +159,9 @@ import {
         isAutomaticReconnection: this.isAutomaticReconnection
       })
 
-    if(this.isInitialConnection)
-      this.isInitialConnection = false
-
-    if(this.isInitialSessionConnection)
-      this.isInitialSessionConnection = false
-
-    if(this.isAutomaticReconnection)
-      this.isAutomaticReconnection = false
+    this.isInitialConnection = false
+    this.isInitialSessionConnection = false
+    this.isAutomaticReconnection = false
 
     if (this.queue.length > 0) {
       this.queue.forEach(this.sendRaw)
@@ -177,7 +169,7 @@ import {
     }
   }
 
-  private registerMessage({ data: _data }: MessageEvent) {
+  private registerMessage({ data: _data }: WebSocket.MessageEvent) {
     let json: ReceivedMessage
 
     try {
@@ -209,7 +201,7 @@ import {
           this.authenticationTimeout = c_authentication_timeout
 
         if (rules.indexOf('enforce_equal_versions') > -1)
-          this.send(0, { v: '1.4.3' }, 'CLIENT_VERSION')
+          this.send(0, { v: '1.5.3' }, 'CLIENT_VERSION')
 
         if (rules.indexOf('store_messages') > -1)
           this.messages = { sent: [], received: [] }
@@ -256,7 +248,7 @@ import {
     }
   }
 
-  private registerError(error: Event) {
+  private registerError(error: WebSocket.ErrorEvent) {
     if (!this.onError) return
 
     this.onError(new Error(error.type))
