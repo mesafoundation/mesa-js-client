@@ -4,11 +4,11 @@
     "module": "esnext",
     "lib": [
       "dom",
-      "es2015"
+      "es2017"
     ],
     "declaration": true,
     "noImplicitAny": false,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "inlineSourceMap": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
