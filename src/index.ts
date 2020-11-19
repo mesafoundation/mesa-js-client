@@ -1,4 +1,4 @@
-import type WebSocket from 'ws'
+import WebSocket from 'isomorphic-ws'
 
 export type Opcode = number
 export type Data = {
@@ -108,7 +108,6 @@ export default class MesaClient {
       if (this.ws && this.ws.readyState === this.ws.OPEN)
         return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'))
 
-      // @ts-ignore
       this.ws = new WebSocket(this.url)
 
       this.didForcefullyDisconnect = false
