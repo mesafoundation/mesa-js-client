@@ -2,7 +2,7 @@
 <html lang="en">
   <script src="../lib/mesa-js-client.umd.js"></script>
   <script>
-    const client = new MesaClient('ws://localhost:4500')
+    const client = new MesaClient('ws://localhost:4500', { autoConnect: false })
 
     client.onConnected = () => console.log('Connected')
     client.onMessage = ({ opcode, data, type }) => console.log('Received', opcode, data, type)
