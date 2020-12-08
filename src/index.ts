@@ -241,7 +241,7 @@ export default class MesaClient {
           this.authenticationTimeout = c_authentication_timeout
 
         if (rules.indexOf('enforce_equal_versions') > -1)
-          this.send(0, { v: '1.5.3' }, 'CLIENT_VERSION')
+          this.send(0, { v: '1.5.7' }, 'CLIENT_VERSION')
 
         if (rules.indexOf('store_messages') > -1)
           this.messages = { sent: [], received: [] }
