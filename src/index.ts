@@ -1,22 +1,63 @@
-import {
-  Message,
-  Messages,
+import WebSocket from 'isomorphic-ws'
 
-  IClientConfig,
-  IClientConnectionConfig,
-  IClientAuthenticationConfig,
+export type Opcode = number
+export type Data = {
+  [key in string]?: any
+}
+export type Type = string
+export type Sequence = number
 
-  RecievedMessage, Rule,
+// Connect
+export type Rule = 'enforce_equal_versions' | 'store_messages' | 'sends_user_object'
 
-  Opcode,
-  Data,
-  Type,
+export interface IClientConfig {
+  autoConnect?: boolean
+}
 
-  ConnectionOptions,
-  DisconnectionOptions
-} from './defs'
+export interface IClientAuthenticationConfig {
+  shouldSync?: boolean
+}
 
-/*export default*/ class MesaClient {
+export interface IClientConnectionConfig {
+  c_heartbeat_interval?: number
+  c_reconnect_interval?: number
+  c_authentication_timeout?: number
+
+  rules?: Rule[]
+}
+
+// Messages
+export interface ReceivedMessage {
+  op: Opcode
+  d: Data
+  t?: Type
+  s?: Sequence
+}
+
+export interface Message {
+  opcode: Opcode
+  data: Data
+  type?: Type
+  sequence?: Sequence
+}
+
+export interface Messages {
+  sent: ReceivedMessage[]
+  received: ReceivedMessage[]
+}
+
+export interface ConnectionOptions {
+  isInitialConnection: boolean
+  isInitialSessionConnection: boolean
+
+  isAutomaticReconnection: boolean
+}
+
+export interface DisconnectionOptions {
+  willAttemptReconnect: boolean
+}
+
+export default class MesaClient {
   public url: string
   public ws: WebSocket
 
@@ -25,14 +66,14 @@ import {
   public messages: Messages
   private config: IClientConfig
 
-  private queue: RecievedMessage[] = []
+  private queue: ReceivedMessage[] = []
 
   private rules: Rule[] = []
 
   private heartbeatIntervalTime: number
   private authenticationTimeout: number
 
-  private reconnectionIntervalId: number
+  private reconnectionIntervalId: NodeJS.Timeout
   private reconnectionIntervalTime: number
 
   private authenticationResolve: (value?: unknown) => void
@@ -45,7 +86,7 @@ import {
   // Connection Options
   private isInitialConnection: boolean = true // First connection (not counting force disconnections)
   private isInitialSessionConnection: boolean = true // First session connection connection (counting force disconnections)
-  
+
   private isAutomaticReconnection: boolean = false
 
   // Disconnection Options
@@ -63,28 +104,30 @@ import {
     return new Promise((resolve, reject) => {
       if (this.reconnectionIntervalId)
         clearInterval(this.reconnectionIntervalId)
-  
+
       if (this.ws && this.ws.readyState === this.ws.OPEN)
         return reject(new Error('This client is already connected to a pre-existing Mesa server. Call disconnect() to disconnect before attempting to reconnect again'))
-  
+
       this.ws = new WebSocket(this.url)
-  
+
       this.didForcefullyDisconnect = false
 
       const resolveConnection = () => {
-        this.ws.removeEventListener('open', resolveConnection)
+        removeListeners()
         resolve()
       }
-  
-      this.ws.addEventListener('open', resolveConnection)
-  
       const rejectError = error => {
-        this.ws.removeEventListener('error', rejectError)
+        removeListeners()
         reject(error)
       }
-  
+      const removeListeners = () => {
+        this.ws.removeEventListener('open', resolveConnection)
+        this.ws.removeEventListener('error', rejectError)
+      }
+
+      this.ws.addEventListener('open', resolveConnection)
       this.ws.addEventListener('error', rejectError)
-  
+
       this.ws.onopen = () => this.registerOpen()
       this.ws.onmessage = data => this.registerMessage(data)
       this.ws.onclose = ({ code, reason }) => this.registerClose(code, reason)
@@ -93,15 +136,15 @@ import {
   }
 
   public send(opcode: Opcode, data: Data, type?: Type) {
-    const message: RecievedMessage = { op: opcode, d: data, t: type }
+    const message: ReceivedMessage = { op: opcode, d: data, t: type }
 
     this.sendRaw(message)
   }
 
-  private sendRaw(message: RecievedMessage) {
+  private sendRaw(message: ReceivedMessage) {
     if (typeof this.ws === 'undefined')
       return // Add better alert system here
-    
+
     if (this.ws.readyState !== this.ws.OPEN)
       return this.queue.push(message)
 
@@ -128,29 +171,23 @@ import {
   }
 
   private parseConfig(config?: IClientConfig) {
-    if (!config)
-      config = {}
-
-    if (typeof config.autoConnect === 'undefined')
-      config.autoConnect = true
-
-    return config
+    return {
+      autoConnect: true,
+      ...config
+    }
   }
 
   private parseAuthenticationConfig(config?: IClientAuthenticationConfig) {
-    if (!config)
-      config = {}
-
-    if (typeof config.shouldSync === 'undefined')
-      config.shouldSync = true
-
-    return config
+    return {
+      shouldSync: true,
+      ...config
+    }
   }
 
   private connectAndSupressWarnings() {
     this.connect()
-      .then(() => { })
-      .catch(() => { })
+      .then(() => {})
+      .catch(() => {})
   }
 
   private registerOpen() {
@@ -162,14 +199,9 @@ import {
         isAutomaticReconnection: this.isAutomaticReconnection
       })
 
-    if(this.isInitialConnection)
-      this.isInitialConnection = false
-
-    if(this.isInitialSessionConnection)
-      this.isInitialSessionConnection = false
-
-    if(this.isAutomaticReconnection)
-      this.isAutomaticReconnection = false
+    this.isInitialConnection = false
+    this.isInitialSessionConnection = false
+    this.isAutomaticReconnection = false
 
     if (this.queue.length > 0) {
       this.queue.forEach(this.sendRaw)
@@ -177,8 +209,8 @@ import {
     }
   }
 
-  private registerMessage({ data: _data }: MessageEvent) {
-    let json: RecievedMessage
+  private registerMessage({ data: _data }: WebSocket.MessageEvent) {
+    let json: ReceivedMessage
 
     try {
       json = JSON.parse(_data.toString())
@@ -209,10 +241,10 @@ import {
           this.authenticationTimeout = c_authentication_timeout
 
         if (rules.indexOf('enforce_equal_versions') > -1)
-          this.send(0, { v: '1.4.3' }, 'CLIENT_VERSION')
+          this.send(0, { v: '1.5.3' }, 'CLIENT_VERSION')
 
         if (rules.indexOf('store_messages') > -1)
-          this.messages = { sent: [], recieved: [] }
+          this.messages = { sent: [], received: [] }
 
         this.rules = rules
 
@@ -236,7 +268,7 @@ import {
       this.onMessage(message)
 
     if (this.rules.indexOf('store_messages') > -1)
-      this.messages.recieved.push(json)
+      this.messages.received.push(json)
   }
 
   private registerClose(code?: number, reason?: string) {
@@ -256,7 +288,7 @@ import {
     }
   }
 
-  private registerError(error: Event) {
+  private registerError(error: WebSocket.ErrorEvent) {
     if (!this.onError) return
 
     this.onError(new Error(error.type))
