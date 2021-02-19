@@ -142,7 +142,7 @@ export default class MesaClient {
   }
 
   private sendRaw(message: ReceivedMessage) {
-    if (typeof this.ws === 'undefined')
+    if (typeof this.ws === 'undefined' || !this.ws)
       return // Add better alert system here
 
     if (this.ws.readyState !== this.ws.OPEN)
@@ -162,7 +162,10 @@ export default class MesaClient {
   })
 
   public disconnect(code?: number, data?: string) {
-    this.ws.close(code, data)
+    if(this.ws) {
+      this.ws.close(code, data)
+      this.ws = null
+    }
 
     this.didForcefullyDisconnect = true
 
